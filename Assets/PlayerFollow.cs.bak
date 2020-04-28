@@ -1,0 +1,203 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;
+using UnityEngine;
+using System;
+
+public class Player : MonoBehaviour
+{
+
+    public Transform RoomTarget;
+    public Transform MainTarget;
+    public Transform InfoTarget;
+    public Transform ShowRoom;
+    public Transform Demo1;
+
+    private Vector3 _cameraOffset;
+
+    [Range(0.01f, 1.0f)]
+    public float SmoothFactor = 0.1f;
+
+    public float RotationsSpeed = 1.0f;
+    public float MovementSpeed = 0.02f;//移動速度
+
+    private GUIStyle largeFont;
+    private string info;
+
+    private float x = 0.0f;
+
+    private float angle = 0.0f;
+
+    private float test = 0.0f;
+
+
+    public enum RotationAxes { MouseXAndY = 0, MouseX = 1, MouseY = 2 }
+    public RotationAxes axes = RotationAxes.MouseXAndY;
+    public float sensitivityX = 2F;
+    public float sensitivityY = 2F;
+    public float minimumX = -360F;
+    public float maximumX = 360F;
+    public float minimumY = -90F;
+    public float maximumY = 90F;
+    float rotationY = -60F;
+
+    private int cameraState = 0;
+    private int stillCounter = 0;
+    private Vector3 shift;
+    private Vector3 spawnerGap;
+    private Vector3 logoDefAngle;
+    private bool LookAtPlayer = false;
+    public bool RotateAroundPlayer = true;
+
+    // Use this for initialization
+    void Start()
+    {
+        largeFont = new GUIStyle();
+        largeFont.fontSize = 72;
+        largeFont.normal.textColor = Color.white;
+        Cursor.visible = true;
+    }
+    void OnGUI()
+    {
+        //GUI.Window(0, new Rect(10, 10, 300, 150), infoWindow, "");
+    }
+
+    void infoWindow(int windowID)
+    {
+        GUI.Label(new Rect(10, 10, 100, 20), "link: " + Convert.ToString(ws.IsConnected()));
+
+    }
+
+
+
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+        switch (cameraState)
+        {
+            case 0:
+                WsInput();
+                MouseInput();
+                break;
+            case 1:
+                Transition();
+                break;
+            case 2:
+                CheckMouseClick();
+                break;
+            case 3:
+                Transition2();
+                break;
+            case 4:
+                MainShow();
+                break;
+        }
+    }
+    
+    void MainShow()
+    {
+        Vector3 movement = shift*(MovementSpeed * 5 * Time.deltaTime);
+        transform.Translate(movement, Space.World);
+        if (transform.position.z <= MainTarget.position.z - 1 )
+        {
+            transform.localPosition = new Vector3(MainTarget.position.x, MainTarget.position.y, MainTarget.position.z);
+            transform.LookAt(Demo1);
+            cameraState = 0;
+            return;
+        }
+    }
+
+    void Transition2()
+    {
+        Vector3 movement = shift * (MovementSpeed * 5 * Time.deltaTime);
+
+        transform.Translate(movement, Space.World);
+        if (transform.position.y <= MainTarget.position.y + 0.1 )
+        {
+            transform.localPosition = new Vector3(MainTarget.position.x, MainTarget.position.y, MainTarget.position.z);
+            
+            transform.LookAt(ShowRoom);
+            print("move to state 4");
+            cameraState = 4;
+            return;
+        }
+    }
+    void CheckMouseClick()
+    {
+       if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved))
+        {
+            RaycastHit hit;
+
+            Ray ray;
+
+            if (Input.GetMouseButtonDown(0))
+                ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            else
+                ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+
+            if (Physics.Raycast(ray, out hit, 100.0f))
+            {
+                if ( hit.transform != null && hit.transform == InfoTarget)
+                {
+                    cameraState = 3;
+
+                    shift = MainTarget.position - transform.position;
+                }
+            }
+
+        }
+    }
+
+    void Transition()
+    {
+        Vector3 movement = shift * (MovementSpeed * 6 * Time.deltaTime);
+        
+        print(transform.position);
+        transform.Translate(movement, Space.World);
+        if (transform.position.y >= RoomTarget.position.y - 0.1 )
+        {
+            transform.localPosition = new Vector3(RoomTarget.position.x, RoomTarget.position.y, RoomTarget.position.z);
+            print("move to state 2");
+            print(transform.position);
+            transform.LookAt(ShowRoom);
+            cameraState = 2;
+            return;
+        }
+    }
+
+    void MouseInput()
+    {
+
+        bool result = false;
+        float MaxTimeWait = 1;
+        float VariancePosition = 1;
+        if(Input.GetMouseButtonDown(0) || Input.touchCount >1)
+        {
+            print("get touch: " + Input.touchCount.ToString());
+            for (int i =0;i<Input.touchCount;i++)
+            {
+                print("get touch tabcount: " + Input.GetTouch(i).tapCount.ToString());
+            }
+            if (Input.GetTouch(0).tapCount >= 2)
+            {
+                print("double tap");
+            }
+
+            print("move to state 1");
+            cameraState = 1;
+
+            shift = RoomTarget.position - transform.position;
+            return;
+        }
+    }
+
+    void WsInput()
+    {
+
+    }
+
+}
+
