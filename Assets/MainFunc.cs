@@ -96,7 +96,7 @@ public class MainFunc : MonoBehaviour
         if (MainTarget.eulerAngles.y >= transform.eulerAngles.y + 3)
         {
             //transform.Rotate(MainTarget.eulerAngles * Time.deltaTime, Space.World);
-           transform.rotation = Quaternion.Lerp(transform.rotation, MainTarget.rotation, 1 * Time.deltaTime);
+           transform.rotation = Quaternion.Lerp(transform.rotation, MainTarget.rotation, 3 * Time.deltaTime);
         }
         if (transform.position.y <= MainTarget.position.y + 0.3 && MainTarget.eulerAngles.y <= transform.eulerAngles.y + 3)
         {
